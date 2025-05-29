@@ -13,7 +13,7 @@
         }
         .container { 
             margin: 12px auto; 
-            width: 80%; 
+            width: 90%; /* Wider container for mobile */
             max-width: 600px;
             background-color: white;
             padding: 8px;
@@ -33,72 +33,65 @@
             padding: 5px;
             border: 1px solid #ddd;
             border-radius: 6px;
-            /* Added display flex to create more structured layout */
-            display: flex;
-            flex-direction: column;
-            min-height: 300px;
-            position: relative;
+            position: relative; /* Make the card a positioning context */
+            min-height: 280px; /* Ensure card has enough height for all elements */
         }
         .phonogram-image {
             max-width: 75%;
             height: auto;
-            margin: 0 auto;
+            margin: 0 auto 80px; /* Add bottom margin to make room for audio controls */
             display: block;
-            /* Added margin-bottom to create space for audio controls */
-            margin-bottom: 70px;
         }
         .audio-controls {
-            /* Fixed positioning for audio controls to prevent cutoff */
-            position: absolute;
-            left: 50%;
-            transform: translateX(-50%);
+            position: relative; /* Position relative to the card */
+            margin: -70px auto 10px; /* Negative margin moves it up into the space we created */
             width: 85%;
-            /* Position audio controls with enough space from bottom */
-            bottom: 80px;
+            max-width: 300px;
         }
         audio {
             max-width: 100%;
-            height: 35px; /* Increased height for better touch targets */
+            height: 40px; /* Taller audio controls for better touch targets */
         }
         .controls { 
-            margin-top: 7px; 
+            margin-top: 15px; /* More space above controls */
         }
         .status { 
-            margin-top: 7px;
-            margin-bottom: 7px;
-            padding: 4px;
+            margin-top: 15px;
+            margin-bottom: 15px;
+            padding: 10px;
             background-color: #f8f8f8;
             border-radius: 4px;
-            /* Position status at the bottom of card */
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            padding-bottom: 10px;
         }
         .status label { 
-            margin-right: 5px; 
+            margin-right: 10px; /* More space between radio options */
+            margin-bottom: 5px;
+            display: inline-block; /* Better layout on small screens */
             cursor: pointer;
         }
         button { 
-            margin: 2px; 
-            padding: 3px 6px; 
-            font-size: 0.8rem;
+            margin: 5px; /* More space around buttons */
+            padding: 8px 15px; /* Larger touch targets */
+            font-size: 0.9rem;
             background-color: #4A148C;
             color: white;
             border: none;
-            border-radius: 3px;
+            border-radius: 5px;
             cursor: pointer;
         }
         button:hover {
             background-color: #6A1B9A;
         }
         #card-counter {
-            font-size: 0.9rem;
-            margin: 3px 0;
+            font-size: 1rem;
+            margin: 10px 0;
         }
         #restart-session {
             background-color: #f44336;
+            display: block; /* Make button full-width on mobile */
+            width: 80%;
+            max-width: 300px;
+            margin: 15px auto; /* Center the button and add more vertical space */
+            padding: 10px 0;
         }
         #restart-session:hover {
             background-color: #d32f2f;
@@ -108,22 +101,33 @@
             font-weight: bold;
         }
 
-        /* Mobile specific adjustments */
+        /* Mobile-specific adjustments */
         @media (max-width: 480px) {
+            .container {
+                width: 95%; /* Even wider on smaller screens */
+                padding: 10px 5px;
+            }
             .phonogram-card {
-                min-height: 320px; /* Taller cards on mobile */
+                min-height: 300px; /* Taller on mobile */
             }
             .phonogram-image {
-                margin-bottom: 85px; /* More space on mobile */
+                margin-bottom: 90px; /* More space on mobile */
             }
             .audio-controls {
-                bottom: 90px; /* Position higher on mobile */
-            }
-            .status {
-                padding-bottom: 15px; /* More padding on mobile */
+                margin-top: -80px; /* Adjust position on mobile */
             }
             audio {
-                height: 40px; /* Even larger touch target on mobile */
+                height: 45px; /* Even larger on mobile for easier tapping */
+            }
+            .status label {
+                margin-right: 5px;
+                padding: 3px;
+            }
+            button {
+                padding: 10px 15px; /* Larger buttons on mobile */
+            }
+            #restart-session {
+                width: 90%; /* Wider on mobile */
             }
         }
     </style>
