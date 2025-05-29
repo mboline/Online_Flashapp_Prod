@@ -1,349 +1,237 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Phonogram University - Phonogram Session</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Phonogram Session</title>
     <style>
-        body { 
-            font-family: Arial, sans-serif; 
-            text-align: center; 
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 10px;
             background-color: #f5f5f5;
-            font-size: 0.8rem;
-            margin: 10px;
         }
-        .container { 
-            margin: 12px auto; 
-            width: 80%; 
+        .container {
             max-width: 600px;
+            margin: 0 auto;
             background-color: white;
-            padding: 8px;
             border-radius: 8px;
-            box-shadow: 0 0 8px rgba(0,0,0,0.1);
+            padding: 15px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
         }
         h1 {
-            margin: 8px 0;
-            font-size: 1.2rem;
+            text-align: center;
+            margin-bottom: 20px;
         }
-        h3 {
-            margin: 5px 0;
-            font-size: 0.9rem;
-        }
-        .phonogram-card {
-            margin: 5px 0;
-            padding: 5px;
+        .card {
+            position: relative;
             border: 1px solid #ddd;
-            border-radius: 6px;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 15px;
+        }
+        .phonogram-display {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 250px;
+            position: relative;
+            margin-bottom: 60px; /* Increased space for controls */
         }
         .phonogram-image {
-            max-width: 75%;
-            height: auto;
-            margin: 0 auto;
-            display: block;
+            max-width: 80%;
+            max-height: 200px;
+            margin-bottom: 50px; /* Increased space for the play button */
         }
         .audio-controls {
-            margin: 5px auto;
+            position: absolute;
+            bottom: -40px; /* Positioned further below the image */
+            left: 50%;
+            transform: translateX(-50%);
+            width: 80px;
+            height: 80px;
         }
-        .controls { 
-            margin-top: 7px; 
-        }
-        .status { 
-            margin-top: 7px;
-            margin-bottom: 7px;
-            padding: 4px;
-            background-color: #f8f8f8;
-            border-radius: 4px;
-        }
-        .status label { 
-            margin-right: 5px; 
-            cursor: pointer;
-        }
-        button { 
-            margin: 2px; 
-            padding: 3px 6px; 
-            font-size: 0.8rem;
+        .play-button {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
             background-color: #4A148C;
             color: white;
             border: none;
-            border-radius: 3px;
             cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
-        button:hover {
-            background-color: #6A1B9A;
+        .play-icon {
+            width: 40%;
+            height: 40%;
         }
-        #card-counter {
-            font-size: 0.9rem;
-            margin: 3px 0;
+        .status-section {
+            text-align: center;
+            margin-top: 30px;
+            padding: 15px 0;
+            border-top: 1px solid #eee;
         }
-        audio {
-            max-width: 100%;
-            height: 25px;
+        .status-options {
+            display: flex;
+            justify-content: space-around;
+            margin-top: 10px;
+            flex-wrap: wrap;
         }
-        #restart-session {
-            background-color: #f44336;
+        .status-option {
+            margin: 5px 10px;
         }
-        #restart-session:hover {
-            background-color: #d32f2f;
+        .card-counter {
+            text-align: center;
+            margin: 15px 0;
+            font-size: 18px;
         }
-        input[value="Remove"] + span {
-            color: #f44336;
+        .navigation {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 15px;
+            flex-wrap: wrap;
+        }
+        .nav-button {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
             font-weight: bold;
+        }
+        .prev-button {
+            background-color: #4A148C;
+            color: white;
+        }
+        .next-button {
+            background-color: #4A148C;
+            color: white;
+        }
+        .home-button {
+            background-color: #e53935;
+            color: white;
+            margin-top: 10px;
+            width: 100%;
+            padding: 10px 0;
+        }
+        
+        /* Mobile-specific adjustments */
+        @media (max-width: 480px) {
+            .container {
+                padding: 10px;
+                width: 95%;
+                margin: 0 auto;
+            }
+            .card {
+                padding: 10px;
+            }
+            .phonogram-display {
+                min-height: 200px;
+            }
+            .phonogram-image {
+                max-height: 150px;
+                margin-bottom: 70px; /* Even more space on mobile */
+            }
+            .audio-controls {
+                bottom: -50px; /* Further down on mobile */
+            }
+            .status-options {
+                padding: 0 5px;
+            }
+            h1 {
+                font-size: 1.5em;
+                margin-top: 10px;
+            }
         }
     </style>
 </head>
 <body>
     <div class="container">
         <h1>Phonogram Session</h1>
-        {% if phonograms %}
-            <div id="phonogram-container">
-                {% for phonogram in phonograms %}
-                <div class="phonogram-card" 
-                     data-phonogram-id="{{ phonogram['phonogram'] }}" 
-                     data-original-number="{{ loop.index }}">
-                    <img class="phonogram-image" src="{{ phonogram['image_url'] }}" alt="Phonogram Image">
-                    <div class="audio-controls">
-                        <audio controls>
-                            <source src="{{ phonogram['audio_url'] }}" type="audio/mpeg">
-                            Your browser does not support the audio element.
-                        </audio>
-                    </div>
-                    
-                    <!-- Status section with unique name for each card -->
-                    <div class="status">
-                        <h3>Status</h3>
-                        <label>
-                            <input type="radio" name="status_{{ loop.index }}" value="Not Known" checked> Not Known
-                        </label>
-                        <label>
-                            <input type="radio" name="status_{{ loop.index }}" value="Needs Work"> Needs Work
-                        </label>
-                        <label>
-                            <input type="radio" name="status_{{ loop.index }}" value="Known"> Known
-                        </label>
-                        <label>
-                            <input type="radio" name="status_{{ loop.index }}" value="Remove"> <span>Remove</span>
-                        </label>
-                    </div>
+        
+        <div class="card">
+            <div class="phonogram-display">
+                {% if phonograms %}
+                <img class="phonogram-image" src="{{ phonograms[0].image_url }}" alt="{{ phonograms[0].phonogram }}">
+                <div class="audio-controls">
+                    <button class="play-button" onclick="playAudio('{{ phonograms[0].audio_url }}')">
+                        <svg class="play-icon" viewBox="0 0 24 24">
+                            <path fill="currentColor" d="M8,5.14V19.14L19,12.14L8,5.14Z" />
+                        </svg>
+                    </button>
                 </div>
-                {% endfor %}
+                {% endif %}
             </div>
             
-            <div class="controls">
-                <p id="card-counter">Card 1 of {{ phonograms|length }}</p>
-                <button id="previous">Previous</button>
-                <button id="next">Next</button>
+            <div class="status-section">
+                <div>Status</div>
+                <div class="status-options">
+                    <label class="status-option">
+                        <input type="radio" name="status" value="not_known"> Not Known
+                    </label>
+                    <label class="status-option">
+                        <input type="radio" name="status" value="needs_work"> Needs Work
+                    </label>
+                    <label class="status-option">
+                        <input type="radio" name="status" value="known" checked> Known
+                    </label>
+                    <label class="status-option">
+                        <input type="radio" name="status" value="remove"> Remove
+                    </label>
+                </div>
             </div>
-        {% else %}
-            <p>No phonograms available for this session.</p>
-        {% endif %}
-        <button id="restart-session" onclick="window.location.href='/'">Back to Home</button>
+        </div>
+        
+        <div class="card-counter">
+            Card 1 of {{ phonograms|length }}
+        </div>
+        
+        <div class="navigation">
+            <button class="nav-button prev-button" onclick="previousCard()" disabled>Previous</button>
+            <button class="nav-button next-button" onclick="nextCard()">Next</button>
+        </div>
+        
+        <button class="nav-button home-button" onclick="window.location.href='/'">Back to Home</button>
     </div>
-    
-    <!-- Inline JavaScript with sequential navigation and localStorage persistence -->
+
     <script>
-        // Wait for the DOM to be fully loaded
-        document.addEventListener('DOMContentLoaded', function() {
-            console.log('Session page script initialized');
+        let currentCardIndex = 0;
+        const phonograms = {{ phonograms|tojson }};
+        
+        function updateCard() {
+            const phonogram = phonograms[currentCardIndex];
+            document.querySelector('.phonogram-image').src = phonogram.image_url;
+            document.querySelector('.card-counter').textContent = `Card ${currentCardIndex + 1} of ${phonograms.length}`;
             
-            // Get all phonogram cards
-            const cards = document.querySelectorAll('.phonogram-card');
-            if (cards.length > 0) {
-                console.log(`Found ${cards.length} phonogram cards`);
-                
-                // Initialize variables
-                let currentIndex = 0;
-                let removedCards = []; // Track removed cards
-                let activeCardCount = cards.length; // Counter for active cards
-                
-                // Initialize localStorage management
-                const STORAGE_KEY = 'phonogramAssistant_statuses';
-                
-                // Load saved statuses from localStorage
-                function loadSavedStatuses() {
-                    try {
-                        const saved = localStorage.getItem(STORAGE_KEY);
-                        return saved ? JSON.parse(saved) : {};
-                    } catch (e) {
-                        console.error('Error loading saved statuses:', e);
-                        return {};
-                    }
-                }
-                
-                // Save status to localStorage
-                function saveStatus(phonogramId, status) {
-                    try {
-                        const saved = loadSavedStatuses();
-                        saved[phonogramId] = status;
-                        localStorage.setItem(STORAGE_KEY, JSON.stringify(saved));
-                        console.log(`Saved status for ${phonogramId}: ${status}`);
-                    } catch (e) {
-                        console.error('Error saving status:', e);
-                    }
-                }
-                
-                // Apply saved statuses to current cards
-                function applySavedStatuses() {
-                    const saved = loadSavedStatuses();
-                    cards.forEach((card, index) => {
-                        const phonogramId = card.dataset.phonogramId;
-                        if (phonogramId && saved[phonogramId]) {
-                            const statusName = `status_${index + 1}`;
-                            const statusRadios = card.querySelectorAll(`input[name="${statusName}"]`);
-                            
-                            statusRadios.forEach(radio => {
-                                if (radio.value === saved[phonogramId]) {
-                                    radio.checked = true;
-                                    
-                                    // If status is "Remove", mark the card as removed
-                                    if (radio.value === "Remove") {
-                                        if (!removedCards.includes(index)) {
-                                            removedCards.push(index);
-                                            activeCardCount--;
-                                        }
-                                    }
-                                }
-                            });
-                            
-                            console.log(`Applied saved status for ${phonogramId}: ${saved[phonogramId]}`);
-                        }
-                    });
-                    
-                    console.log('Applied saved statuses:', saved);
-                }
-                
-                // Apply saved statuses
-                applySavedStatuses();
-                
-                // Find a valid first card (not removed)
-                if (removedCards.length > 0 && removedCards.length < cards.length) {
-                    while (removedCards.includes(currentIndex)) {
-                        currentIndex = (currentIndex + 1) % cards.length;
-                    }
-                }
-                
-                // Initial display
-                updateCardDisplay();
-                
-                // Set up navigation buttons
-                const prevButton = document.getElementById('previous');
-                const nextButton = document.getElementById('next');
-                
-                if (prevButton) {
-                    prevButton.addEventListener('click', function() {
-                        console.log('Previous button clicked');
-                        // Move to previous non-removed card
-                        currentIndex = findPrevActiveCard();
-                        updateCardDisplay();
-                    });
-                }
-                
-                if (nextButton) {
-                    nextButton.addEventListener('click', function() {
-                        console.log('Next button clicked');
-                        // Check if current card is being removed
-                        const isRemoved = updateCardStatus(currentIndex);
-                        
-                        if (isRemoved) {
-                            // If current card was removed, update count and check if all cards are removed
-                            activeCardCount--;
-                            
-                            if (activeCardCount <= 0) {
-                                alert("All phonograms have been removed from the session.");
-                                window.location.href = '/'; // Return to home page
-                                return;
-                            }
-                        }
-                        
-                        // Move to next non-removed card
-                        currentIndex = findNextActiveCard();
-                        updateCardDisplay();
-                    });
-                }
-                
-                // Find the next non-removed card (sequentially)
-                function findNextActiveCard() {
-                    let nextIndex = currentIndex;
-                    let attempts = 0;
-                    
-                    // Try to find a non-removed card by moving forward
-                    while (attempts < cards.length) {
-                        nextIndex = (nextIndex + 1) % cards.length;
-                        if (!removedCards.includes(nextIndex)) {
-                            return nextIndex;
-                        }
-                        attempts++;
-                    }
-                    
-                    // Should never get here unless all cards are removed
-                    return currentIndex;
-                }
-                
-                // Find the previous non-removed card (sequentially)
-                function findPrevActiveCard() {
-                    let prevIndex = currentIndex;
-                    let attempts = 0;
-                    
-                    // Try to find a non-removed card by moving backward
-                    while (attempts < cards.length) {
-                        prevIndex = (prevIndex - 1 + cards.length) % cards.length;
-                        if (!removedCards.includes(prevIndex)) {
-                            return prevIndex;
-                        }
-                        attempts++;
-                    }
-                    
-                    // Should never get here unless all cards are removed
-                    return currentIndex;
-                }
-                
-                // Update card status and check if it's removed
-                // Returns true if the card was removed
-                function updateCardStatus(index) {
-                    const card = cards[index];
-                    const phonogramId = card.dataset.phonogramId;
-                    const statusName = `status_${index + 1}`;
-                    const statusRadios = document.querySelectorAll(`input[name="${statusName}"]`);
-                    
-                    // Find the selected status
-                    for (let radio of statusRadios) {
-                        if (radio.checked) {
-                            // Save the status to localStorage
-                            if (phonogramId) {
-                                saveStatus(phonogramId, radio.value);
-                            }
-                            
-                            if (radio.value === "Remove") {
-                                // Mark card as removed
-                                if (!removedCards.includes(index)) {
-                                    removedCards.push(index);
-                                    console.log(`Card ${index + 1} has been removed from the session`);
-                                }
-                                return true;
-                            }
-                            break;
-                        }
-                    }
-                    return false;
-                }
-                
-                function updateCardDisplay() {
-                    // Hide all cards
-                    cards.forEach(card => card.style.display = 'none');
-                    
-                    // Show only current card
-                    cards[currentIndex].style.display = 'block';
-                    
-                    // Get the original number from the data attribute
-                    const originalNumber = parseInt(cards[currentIndex].dataset.originalNumber || '1');
-                    
-                    // Update counter - Use the original number as the card number
-                    const counter = document.getElementById('card-counter');
-                    if (counter) {
-                        counter.textContent = `Card ${originalNumber} of ${cards.length}`;
-                    }
-                    
-                    console.log(`Showing card index ${currentIndex + 1}, Original Number: ${originalNumber}`);
-                }
+            // Update button states
+            document.querySelector('.prev-button').disabled = currentCardIndex === 0;
+            document.querySelector('.next-button').disabled = currentCardIndex === phonograms.length - 1;
+            
+            // Reset radio buttons for new card
+            document.querySelector('input[value="known"]').checked = true;
+        }
+        
+        function nextCard() {
+            if (currentCardIndex < phonograms.length - 1) {
+                currentCardIndex++;
+                updateCard();
             }
-        });
+        }
+        
+        function previousCard() {
+            if (currentCardIndex > 0) {
+                currentCardIndex--;
+                updateCard();
+            }
+        }
+        
+        function playAudio(url) {
+            const audio = new Audio(url);
+            audio.play().catch(e => console.error("Audio playback error:", e));
+        }
     </script>
 </body>
 </html>
