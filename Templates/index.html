@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Phonogram University - Phonogram Flashcard App</title>
+    <style>
+        body { 
+            font-family: Arial, sans-serif; 
+            margin: 20px;
+        }
+        .banner {
+            width: 100%;
+            max-width: 1024px;
+            margin-bottom: 20px;
+        }
+        .header-text {
+            margin-bottom: 30px;
+        }
+        .header-text h1 {
+            color: #444;
+            font-size: 32px;
+            margin-bottom: 5px;
+        }
+        .header-text h2 {
+            color: #666;
+            font-size: 20px;
+            font-weight: normal;
+            margin-top: 0;
+        }
+        .header-text a {
+            color: #4A148C;
+            text-decoration: none;
+        }
+        .header-text a:hover {
+            text-decoration: underline;
+        }
+        hr {
+            border: none;
+            border-top: 1px solid #ddd;
+            margin: 20px 0;
+        }
+        .top-controls {
+            background-color: #f8f8f8;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            border: 1px solid #ddd;
+        }
+        .control-row {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        .checkbox-column {
+            display: flex;
+            flex-direction: column;
+        }
+        .checkbox-row {
+            margin-bottom: 8px;
+        }
+        #start-session {
+            margin-left: 30px;
+            padding: 8px 15px;
+            background-color: #4A148C;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        #start-session:hover {
+            background-color: #6A1B9A;
+        }
+        .lesson {
+            margin-bottom: 15px;
+            border: 1px solid #ddd;
+            padding: 10px;
+            border-radius: 5px;
+        }
+        .lesson-header {
+            margin-bottom: 8px;
+            font-weight: bold;
+        }
+        .phonogram-container {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+        /* Key fix - ensure all checkbox labels have the same styling */
+        .phonogram, .select-all-label {
+            display: inline-flex;
+            align-items: center;
+            margin-right: 15px;
+            margin-bottom: 5px;
+        }
+        /* Add spacing between checkbox and text */
+        input[type="checkbox"] {
+            vertical-align: middle;
+            margin: 0;
+            margin-right: 5px; /* Add 5px space between checkbox and text */
+            position: relative;
+            top: -1px; /* Fine-tune vertical alignment */
+        }
+        label {
+            display: inline-flex;
+            align-items: center;
+        }
+        
+        /* Media query for smaller screens */
+        @media (max-width: 600px) {
+            .control-row {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            #start-session {
+                margin-left: 0;
+                margin-top: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Banner image -->
+    <img src="https://phonogramuniversity.com/wp-content/uploads/2024/03/ReadingBanner-1-1024x110.gif" 
+         alt="Reading Banner" 
+         class="banner">
+    
+    <!-- Header text -->
+    <div class="header-text">
+        <h1>Welcome to the Phonogram Flashcard App</h1>
+        <h2>Brought to you by <a href="https://www.phonogramuniversity.com" target="_blank">Phonogram University</a></h2>
+    </div>
+    
+    <hr>
+
+    <div class="top-controls">
+        <div class="control-row">
+            <div class="checkbox-column">
+                <div class="checkbox-row">
+                    <label>
+                        <input type="checkbox" id="select-all"> Select All Phonograms
+                    </label>
+                </div>
+                <div class="checkbox-row">
+                    <label>
+                        <input type="checkbox" id="randomize"> Randomize Phonograms
+                    </label>
+                </div>
+            </div>
+            <button type="button" id="start-session">Start Session</button>
+        </div>
+    </div>
+
+    <form id="phonogram-form">
+        {% for lesson in lessons %}
+        <div class="lesson">
+            <div class="lesson-header">
+                Lesson {{ lesson.lesson }}
+            </div>
+            <div class="phonogram-container">
+                {% for phonogram in lesson.phonograms %}
+                <label class="phonogram">
+                    <input type="checkbox" name="phonograms" value="{{ phonogram['phonogram'] }}">
+                    {{ phonogram['phonogram'] }}
+                </label>
+                {% endfor %}
+                <label class="select-all-label">
+                    <input type="checkbox" class="select-lesson" data-lesson="{{ lesson.lesson }}">
+                    Select All
+                </label>
+            </div>
+        </div>
+        {% endfor %}
+    </form>
+
+    <!-- Link to the external JavaScript file -->
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+</body>
+</html>
