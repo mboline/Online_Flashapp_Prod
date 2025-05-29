@@ -1,3 +1,4 @@
+import time
 from flask import Flask, render_template, request, jsonify, redirect, url_for, session
 from pymongo import MongoClient
 from bson import ObjectId
@@ -21,12 +22,46 @@ app = Flask(__name__,
 app.secret_key = os.environ.get('SECRET_KEY', 'your_secret_key')
 
 # Connect to MongoDB using environment variables
-mongo_uri = os.environ.get("MONGO_URI")  # MongoDB connection string
+""" mongo_uri = os.environ.get("MONGO_URI")  # MongoDB connection string
 if not mongo_uri:
     raise ValueError("MONGO_URI is not set in the environment variables.")
 client = MongoClient(mongo_uri)
 db = client['WordInfo']
-collection = db['Phonograms']
+collection = db['Phonograms'] """
+
+mongo_uri = os.environ.get("MONGO_URI")
+if not mongo_uri:
+    raise ValueError("MONGO_URI is not set in the environment variables.")
+
+# More robust connection handling
+max_retries = 3
+retry_delay = 2  # seconds
+for attempt in range(max_retries):
+    try:
+        print(f"MongoDB connection attempt {attempt+1}/{max_retries}")
+        client = MongoClient(
+            mongo_uri,
+            serverSelectionTimeoutMS=5000,
+            connectTimeoutMS=10000,
+            socketTimeoutMS=20000
+        )
+        # Force a connection to verify it's working
+        client.admin.command('ping')
+        print("MongoDB connection successful!")
+        db = client['WordInfo']
+        collection = db['Phonograms']
+        break  # Connection successful, exit the retry loop
+    except Exception as e:
+        print(f"MongoDB connection error on attempt {attempt+1}: {e}")
+        if attempt < max_retries - 1:
+            print(f"Retrying in {retry_delay} seconds...")
+            time.sleep(retry_delay)
+            retry_delay *= 2  # Exponential backoff
+        else:
+            print("All connection attempts failed.")
+            # Consider using a fallback or mock data for development/testing
+            # Or re-raise the exception if you want to fail the application startup
+            raise
 
 # Add debugging for template path
 print(f"Current directory: {os.getcwd()}")
