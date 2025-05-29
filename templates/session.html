@@ -2,21 +2,20 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Phonogram Session</title>
     <style>
         body {
             font-family: Arial, sans-serif;
             margin: 0;
-            padding: 10px;
+            padding: 0;
             background-color: #f5f5f5;
         }
         .container {
             max-width: 600px;
             margin: 0 auto;
+            padding: 10px;
             background-color: white;
-            border-radius: 8px;
-            padding: 15px;
             box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
         }
         h1 {
@@ -24,54 +23,54 @@
             margin-bottom: 20px;
         }
         .card {
-            position: relative;
             border: 1px solid #ddd;
-            border-radius: 8px;
-            padding: 15px;
-            margin-bottom: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            padding: 10px;
+            position: relative;
         }
         .phonogram-display {
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            min-height: 250px;
             position: relative;
-            margin-bottom: 60px; /* Increased space for controls */
+            min-height: 300px;
         }
         .phonogram-image {
             max-width: 80%;
             max-height: 200px;
-            margin-bottom: 50px; /* Increased space for the play button */
+            margin-bottom: 70px; /* More space for the play button */
         }
         .audio-controls {
             position: absolute;
-            bottom: -40px; /* Positioned further below the image */
+            bottom: 0;
             left: 50%;
             transform: translateX(-50%);
-            width: 80px;
-            height: 80px;
+            margin-bottom: 20px; /* Space at the bottom */
         }
         .play-button {
-            width: 100%;
-            height: 100%;
-            border-radius: 50%;
-            background-color: #4A148C;
-            color: white;
+            width: 80px;
+            height: 80px;
+            background-color: #aaa;
             border: none;
-            cursor: pointer;
+            border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
+            cursor: pointer;
         }
         .play-icon {
-            width: 40%;
-            height: 40%;
+            width: 0;
+            height: 0;
+            border-top: 15px solid transparent;
+            border-bottom: 15px solid transparent;
+            border-left: 25px solid white;
+            margin-left: 5px;
         }
         .status-section {
             text-align: center;
-            margin-top: 30px;
-            padding: 15px 0;
+            padding: 10px 0;
             border-top: 1px solid #eee;
         }
         .status-options {
@@ -79,9 +78,6 @@
             justify-content: space-around;
             margin-top: 10px;
             flex-wrap: wrap;
-        }
-        .status-option {
-            margin: 5px 10px;
         }
         .card-counter {
             text-align: center;
@@ -92,57 +88,46 @@
             display: flex;
             justify-content: center;
             gap: 10px;
-            margin-top: 15px;
-            flex-wrap: wrap;
+            margin-bottom: 15px;
         }
         .nav-button {
             padding: 8px 16px;
             border: none;
             border-radius: 4px;
             cursor: pointer;
-            font-weight: bold;
         }
         .prev-button {
-            background-color: #4A148C;
+            background-color: #6a1b9a;
             color: white;
         }
         .next-button {
-            background-color: #4A148C;
+            background-color: #6a1b9a;
             color: white;
         }
         .home-button {
             background-color: #e53935;
             color: white;
-            margin-top: 10px;
-            width: 100%;
-            padding: 10px 0;
+            display: block;
+            width: 150px;
+            margin: 0 auto;
+            padding: 8px 0;
         }
         
         /* Mobile-specific adjustments */
         @media (max-width: 480px) {
-            .container {
-                padding: 10px;
-                width: 95%;
-                margin: 0 auto;
-            }
-            .card {
-                padding: 10px;
-            }
             .phonogram-display {
-                min-height: 200px;
+                min-height: 250px;
             }
             .phonogram-image {
-                max-height: 150px;
-                margin-bottom: 70px; /* Even more space on mobile */
+                margin-bottom: 80px; /* Even more space on mobile */
             }
             .audio-controls {
-                bottom: -50px; /* Further down on mobile */
+                margin-bottom: 10px;
             }
-            .status-options {
-                padding: 0 5px;
+            .status-options label {
+                margin: 0 5px;
             }
-            h1 {
-                font-size: 1.5em;
+            .status-section {
                 margin-top: 10px;
             }
         }
@@ -158,9 +143,7 @@
                 <img class="phonogram-image" src="{{ phonograms[0].image_url }}" alt="{{ phonograms[0].phonogram }}">
                 <div class="audio-controls">
                     <button class="play-button" onclick="playAudio('{{ phonograms[0].audio_url }}')">
-                        <svg class="play-icon" viewBox="0 0 24 24">
-                            <path fill="currentColor" d="M8,5.14V19.14L19,12.14L8,5.14Z" />
-                        </svg>
+                        <div class="play-icon"></div>
                     </button>
                 </div>
                 {% endif %}
@@ -169,17 +152,17 @@
             <div class="status-section">
                 <div>Status</div>
                 <div class="status-options">
-                    <label class="status-option">
+                    <label>
                         <input type="radio" name="status" value="not_known"> Not Known
                     </label>
-                    <label class="status-option">
+                    <label>
                         <input type="radio" name="status" value="needs_work"> Needs Work
                     </label>
-                    <label class="status-option">
+                    <label>
                         <input type="radio" name="status" value="known" checked> Known
                     </label>
-                    <label class="status-option">
-                        <input type="radio" name="status" value="remove"> Remove
+                    <label>
+                        <input type="radio" name="status" value="remove" style="color: red;"> Remove
                     </label>
                 </div>
             </div>
@@ -204,13 +187,19 @@
         function updateCard() {
             const phonogram = phonograms[currentCardIndex];
             document.querySelector('.phonogram-image').src = phonogram.image_url;
+            
+            // Update play button to use the current phonogram's audio
+            document.querySelector('.play-button').onclick = function() {
+                playAudio(phonogram.audio_url);
+            };
+            
             document.querySelector('.card-counter').textContent = `Card ${currentCardIndex + 1} of ${phonograms.length}`;
             
             // Update button states
             document.querySelector('.prev-button').disabled = currentCardIndex === 0;
             document.querySelector('.next-button').disabled = currentCardIndex === phonograms.length - 1;
             
-            // Reset radio buttons for new card
+            // Reset radio buttons
             document.querySelector('input[value="known"]').checked = true;
         }
         
