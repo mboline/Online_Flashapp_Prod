@@ -10,10 +10,13 @@
             background-color: #f5f5f5;
             font-size: 0.8rem;
             margin: 10px;
+            /* Prevent body scrolling if possible */
+            height: 100%;
+            overflow-x: hidden;
         }
         .container { 
-            margin: 12px auto; 
-            width: 90%; /* Wider container for mobile */
+            margin: 5px auto; /* Reduced top/bottom margin */
+            width: 90%;
             max-width: 600px;
             background-color: white;
             padding: 8px;
@@ -21,11 +24,11 @@
             box-shadow: 0 0 8px rgba(0,0,0,0.1);
         }
         h1 {
-            margin: 8px 0;
+            margin: 5px 0; /* Reduced margin */
             font-size: 1.2rem;
         }
         h3 {
-            margin: 5px 0;
+            margin: 3px 0; /* Reduced margin */
             font-size: 0.9rem;
         }
         .phonogram-card {
@@ -33,44 +36,68 @@
             padding: 5px;
             border: 1px solid #ddd;
             border-radius: 6px;
-            position: relative; /* Make the card a positioning context */
-            min-height: 280px; /* Ensure card has enough height for all elements */
+            position: relative;
+            min-height: 250px; /* Increased height */
         }
         .phonogram-image {
             max-width: 75%;
+            max-height: 300px; /* Limit height for compact layout */
             height: auto;
-            margin: 0 auto 80px; /* Add bottom margin to make room for audio controls */
+            margin: 10px auto 100px; /* Increased bottom margin */
             display: block;
         }
         .audio-controls {
-            position: relative; /* Position relative to the card */
-            margin: -70px auto 10px; /* Negative margin moves it up into the space we created */
-            width: 85%;
-            max-width: 300px;
+            position: absolute;
+            left: 50%;
+            bottom: 80px; /* Increased distance from bottom */
+            transform: translateX(-50%);
+            width: 60px;
+            height: 60px;
         }
-        audio {
-            max-width: 100%;
-            height: 40px; /* Taller audio controls for better touch targets */
+        .play-button {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background-color: #4A148C;
+            color: white;
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        }
+        .play-icon {
+            width: 0;
+            height: 0;
+            border-top: 15px solid transparent;
+            border-bottom: 15px solid transparent;
+            border-left: 25px solid white;
+            margin-left: 5px;
         }
         .controls { 
-            margin-top: 15px; /* More space above controls */
+            margin-top: 10px; /* Reduced margin */
         }
         .status { 
-            margin-top: 15px;
-            margin-bottom: 15px;
-            padding: 10px;
+            margin-top: 10px;
+            margin-bottom: 5px;
+            padding: 5px;
             background-color: #f8f8f8;
             border-radius: 4px;
+            position: absolute;
+            bottom: 0;
+            left: 5px;
+            right: 5px;
         }
         .status label { 
-            margin-right: 10px; /* More space between radio options */
-            margin-bottom: 5px;
-            display: inline-block; /* Better layout on small screens */
+            margin-right: 7px;
+            margin-bottom: 3px;
+            display: inline-block;
             cursor: pointer;
         }
         button { 
-            margin: 5px; /* More space around buttons */
-            padding: 8px 15px; /* Larger touch targets */
+            margin: 3px; /* Reduced margin */
+            padding: 6px 12px; /* Slightly smaller buttons */
             font-size: 0.9rem;
             background-color: #4A148C;
             color: white;
@@ -82,16 +109,16 @@
             background-color: #6A1B9A;
         }
         #card-counter {
-            font-size: 1rem;
-            margin: 10px 0;
+            font-size: 0.9rem;
+            margin: 5px 0; /* Reduced margin */
         }
         #restart-session {
             background-color: #f44336;
-            display: block; /* Make button full-width on mobile */
+            display: block;
             width: 80%;
             max-width: 300px;
-            margin: 15px auto; /* Center the button and add more vertical space */
-            padding: 10px 0;
+            margin: 10px auto; /* Reduced margin */
+            padding: 8px 0;
         }
         #restart-session:hover {
             background-color: #d32f2f;
@@ -104,30 +131,23 @@
         /* Mobile-specific adjustments */
         @media (max-width: 480px) {
             .container {
-                width: 95%; /* Even wider on smaller screens */
-                padding: 10px 5px;
+                width: 95%;
+                padding: 8px 5px;
+                margin: 2px auto; /* Almost no margins */
             }
             .phonogram-card {
-                min-height: 300px; /* Taller on mobile */
+                min-height: 280px; /* Increased height on mobile */
             }
             .phonogram-image {
-                margin-bottom: 90px; /* More space on mobile */
+                max-height: 125px; /* Smaller image on mobile */
+                margin-bottom: 120px; /* Increased bottom margin on mobile */
             }
             .audio-controls {
-                margin-top: -80px; /* Adjust position on mobile */
-            }
-            audio {
-                height: 45px; /* Even larger on mobile for easier tapping */
+                bottom: 90px; /* Adjusted position on mobile */
             }
             .status label {
-                margin-right: 5px;
-                padding: 3px;
-            }
-            button {
-                padding: 10px 15px; /* Larger buttons on mobile */
-            }
-            #restart-session {
-                width: 90%; /* Wider on mobile */
+                margin-right: 3px;
+                padding: 2px;
             }
         }
     </style>
@@ -140,13 +160,13 @@
                 {% for phonogram in phonograms %}
                 <div class="phonogram-card" 
                      data-phonogram-id="{{ phonogram['phonogram'] }}" 
-                     data-original-number="{{ loop.index }}">
+                     data-original-number="{{ loop.index }}"
+                     data-audio-url="{{ phonogram['audio_url'] }}">
                     <img class="phonogram-image" src="{{ phonogram['image_url'] }}" alt="Phonogram Image">
                     <div class="audio-controls">
-                        <audio controls>
-                            <source src="{{ phonogram['audio_url'] }}" type="audio/mpeg">
-                            Your browser does not support the audio element.
-                        </audio>
+                        <button class="play-button" onclick="playPhonogramAudio(this)">
+                            <div class="play-icon"></div>
+                        </button>
                     </div>
                     
                     <!-- Status section with unique name for each card -->
@@ -182,6 +202,29 @@
     
     <!-- Inline JavaScript with sequential navigation and localStorage persistence -->
     <script>
+        // Audio player setup
+        let currentAudio = null;
+        
+        function playPhonogramAudio(buttonElement) {
+            // Stop any currently playing audio
+            if (currentAudio) {
+                currentAudio.pause();
+                currentAudio.currentTime = 0;
+            }
+            
+            // Get the parent card element
+            const card = buttonElement.closest('.phonogram-card');
+            // Get the audio URL from the card's data attribute
+            const audioUrl = card.dataset.audioUrl;
+            
+            // Create and play new audio
+            currentAudio = new Audio(audioUrl);
+            currentAudio.play().catch(e => {
+                console.error("Error playing audio:", e);
+                alert("Could not play audio. Please check your volume and try again.");
+            });
+        }
+
         // Wait for the DOM to be fully loaded
         document.addEventListener('DOMContentLoaded', function() {
             console.log('Session page script initialized');
@@ -272,6 +315,11 @@
                 if (prevButton) {
                     prevButton.addEventListener('click', function() {
                         console.log('Previous button clicked');
+                        // Stop any playing audio when navigating
+                        if (currentAudio) {
+                            currentAudio.pause();
+                            currentAudio = null;
+                        }
                         // Move to previous non-removed card
                         currentIndex = findPrevActiveCard();
                         updateCardDisplay();
@@ -281,6 +329,11 @@
                 if (nextButton) {
                     nextButton.addEventListener('click', function() {
                         console.log('Next button clicked');
+                        // Stop any playing audio when navigating
+                        if (currentAudio) {
+                            currentAudio.pause();
+                            currentAudio = null;
+                        }
                         // Check if current card is being removed
                         const isRemoved = updateCardStatus(currentIndex);
                         
