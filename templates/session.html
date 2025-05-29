@@ -10,12 +10,11 @@
             background-color: #f5f5f5;
             font-size: 0.8rem;
             margin: 10px;
-            /* Prevent body scrolling if possible */
             height: 100%;
             overflow-x: hidden;
         }
         .container { 
-            margin: 5px auto; /* Reduced top/bottom margin */
+            margin: 5px auto;
             width: 90%;
             max-width: 600px;
             background-color: white;
@@ -24,11 +23,11 @@
             box-shadow: 0 0 8px rgba(0,0,0,0.1);
         }
         h1 {
-            margin: 5px 0; /* Reduced margin */
+            margin: 5px 0;
             font-size: 1.2rem;
         }
         h3 {
-            margin: 3px 0; /* Reduced margin */
+            margin: 3px 0;
             font-size: 0.9rem;
         }
         .phonogram-card {
@@ -37,20 +36,18 @@
             border: 1px solid #ddd;
             border-radius: 6px;
             position: relative;
-            min-height: 250px; /* Increased height */
+            min-height: 260px; /* Increased height */
         }
         .phonogram-image {
             max-width: 75%;
-            max-height: 300px; /* Limit height for compact layout */
+            max-height: 200px;
             height: auto;
-            margin: 10px auto 100px; /* Increased bottom margin */
+            margin: 10px auto 0; /* No bottom margin on image */
             display: block;
         }
         .audio-controls {
-            position: absolute;
-            left: 50%;
-            bottom: 80px; /* Increased distance from bottom */
-            transform: translateX(-50%);
+            position: relative; /* Changed to relative positioning */
+            margin: 20px auto 40px; /* Added space BELOW the button */
             width: 60px;
             height: 60px;
         }
@@ -76,18 +73,17 @@
             margin-left: 5px;
         }
         .controls { 
-            margin-top: 10px; /* Reduced margin */
+            margin-top: 10px;
         }
         .status { 
-            margin-top: 10px;
-            margin-bottom: 5px;
-            padding: 5px;
+            margin-top: 25px; /* Added more space ABOVE the status section */
+            padding: 10px 5px;
             background-color: #f8f8f8;
             border-radius: 4px;
-            position: absolute;
-            bottom: 0;
-            left: 5px;
-            right: 5px;
+        }
+        .status h3 {
+            margin-top: 5px; /* Added space above the Status heading */
+            margin-bottom: 10px; /* Added space below the Status heading */
         }
         .status label { 
             margin-right: 7px;
@@ -96,8 +92,8 @@
             cursor: pointer;
         }
         button { 
-            margin: 3px; /* Reduced margin */
-            padding: 6px 12px; /* Slightly smaller buttons */
+            margin: 3px;
+            padding: 6px 12px;
             font-size: 0.9rem;
             background-color: #4A148C;
             color: white;
@@ -110,14 +106,14 @@
         }
         #card-counter {
             font-size: 0.9rem;
-            margin: 5px 0; /* Reduced margin */
+            margin: 5px 0;
         }
         #restart-session {
             background-color: #f44336;
             display: block;
             width: 80%;
             max-width: 300px;
-            margin: 10px auto; /* Reduced margin */
+            margin: 10px auto;
             padding: 8px 0;
         }
         #restart-session:hover {
@@ -133,21 +129,16 @@
             .container {
                 width: 95%;
                 padding: 8px 5px;
-                margin: 2px auto; /* Almost no margins */
+                margin: 2px auto;
             }
             .phonogram-card {
-                min-height: 300px; /* Increased height on mobile */
-            }
-            .phonogram-image {
-                max-height: 125px; /* Smaller image on mobile */
-                margin-bottom: 120px; /* Increased bottom margin on mobile */
+                min-height: 280px; /* Increased height on mobile */
             }
             .audio-controls {
-                bottom: 90px; /* Adjusted position on mobile */
+                margin-bottom: 50px; /* Even more space below button on mobile */
             }
-            .status label {
-                margin-right: 3px;
-                padding: 2px;
+            .status {
+                margin-top: 30px; /* More space above status on mobile */
             }
         }
     </style>
@@ -169,7 +160,6 @@
                         </button>
                     </div>
                     
-                    <!-- Status section with unique name for each card -->
                     <div class="status">
                         <h3>Status</h3>
                         <label>
@@ -200,7 +190,7 @@
         <button id="restart-session" onclick="window.location.href='/'">Back to Home</button>
     </div>
     
-    <!-- Inline JavaScript with sequential navigation and localStorage persistence -->
+    <!-- JavaScript remains the same as in previous code -->
     <script>
         // Audio player setup
         let currentAudio = null;
