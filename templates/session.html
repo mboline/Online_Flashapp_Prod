@@ -36,18 +36,18 @@
             border: 1px solid #ddd;
             border-radius: 6px;
             position: relative;
-            min-height: 260px; /* Increased height */
+            min-height: 260px;
         }
         .phonogram-image {
             max-width: 75%;
-            max-height: 200px;
+            max-height: 200px; /* Increased image height to 200px as requested */
             height: auto;
-            margin: 10px auto 0; /* No bottom margin on image */
+            margin: 10px auto 0;
             display: block;
         }
         .audio-controls {
-            position: relative; /* Changed to relative positioning */
-            margin: 20px auto 40px; /* Added space BELOW the button */
+            position: relative;
+            margin: 20px auto 40px;
             width: 60px;
             height: 60px;
         }
@@ -76,14 +76,14 @@
             margin-top: 10px;
         }
         .status { 
-            margin-top: 25px; /* Added more space ABOVE the status section */
+            margin-top: 25px;
             padding: 10px 5px;
             background-color: #f8f8f8;
             border-radius: 4px;
         }
         .status h3 {
-            margin-top: 5px; /* Added space above the Status heading */
-            margin-bottom: 10px; /* Added space below the Status heading */
+            margin-top: 5px;
+            margin-bottom: 10px;
         }
         .status label { 
             margin-right: 7px;
@@ -132,13 +132,13 @@
                 margin: 2px auto;
             }
             .phonogram-card {
-                min-height: 280px; /* Increased height on mobile */
+                min-height: 280px;
             }
             .audio-controls {
-                margin-bottom: 50px; /* Even more space below button on mobile */
+                margin-bottom: 50px;
             }
             .status {
-                margin-top: 30px; /* More space above status on mobile */
+                margin-top: 30px;
             }
         }
     </style>
@@ -190,7 +190,6 @@
         <button id="restart-session" onclick="window.location.href='/'">Back to Home</button>
     </div>
     
-    <!-- JavaScript remains the same as in previous code -->
     <script>
         // Audio player setup
         let currentAudio = null;
@@ -226,17 +225,31 @@
                 
                 // Initialize variables
                 let currentIndex = 0;
-                let removedCards = []; // Track removed cards
+                let removedCards = []; // Track removed cards for THIS session only
                 let activeCardCount = cards.length; // Counter for active cards
                 
                 // Initialize localStorage management
                 const STORAGE_KEY = 'phonogramAssistant_statuses';
+                const SESSION_REMOVE_KEY = 'phonogramAssistant_sessionRemoved';
                 
-                // Load saved statuses from localStorage
+                // Clear any previous session's removed state
+                sessionStorage.removeItem(SESSION_REMOVE_KEY);
+                
+                // Load saved statuses from localStorage (but NOT the removed state)
                 function loadSavedStatuses() {
                     try {
                         const saved = localStorage.getItem(STORAGE_KEY);
-                        return saved ? JSON.parse(saved) : {};
+                        const parsed = saved ? JSON.parse(saved) : {};
+                        
+                        // Create a new object without any "Remove" values
+                        const filtered = {};
+                        for (const key in parsed) {
+                            if (parsed[key] !== "Remove") {
+                                filtered[key] = parsed[key];
+                            }
+                        }
+                        
+                        return filtered;
                     } catch (e) {
                         console.error('Error loading saved statuses:', e);
                         return {};
@@ -247,9 +260,23 @@
                 function saveStatus(phonogramId, status) {
                     try {
                         const saved = loadSavedStatuses();
-                        saved[phonogramId] = status;
-                        localStorage.setItem(STORAGE_KEY, JSON.stringify(saved));
-                        console.log(`Saved status for ${phonogramId}: ${status}`);
+                        
+                        // If status is "Remove", don't save to localStorage
+                        // Instead, save to sessionStorage to track temporary removal
+                        if (status === "Remove") {
+                            const sessionRemoved = JSON.parse(sessionStorage.getItem(SESSION_REMOVE_KEY) || '{}');
+                            sessionRemoved[phonogramId] = true;
+                            sessionStorage.setItem(SESSION_REMOVE_KEY, JSON.stringify(sessionRemoved));
+                            
+                            // If we have a previous status for this item in localStorage, keep it
+                            // Don't update localStorage with "Remove"
+                            console.log(`Temporary removal of ${phonogramId} for this session only`);
+                        } else {
+                            // For other statuses, save to localStorage as before
+                            saved[phonogramId] = status;
+                            localStorage.setItem(STORAGE_KEY, JSON.stringify(saved));
+                            console.log(`Saved status for ${phonogramId}: ${status}`);
+                        }
                     } catch (e) {
                         console.error('Error saving status:', e);
                     }
@@ -258,6 +285,7 @@
                 // Apply saved statuses to current cards
                 function applySavedStatuses() {
                     const saved = loadSavedStatuses();
+                    
                     cards.forEach((card, index) => {
                         const phonogramId = card.dataset.phonogramId;
                         if (phonogramId && saved[phonogramId]) {
@@ -267,14 +295,6 @@
                             statusRadios.forEach(radio => {
                                 if (radio.value === saved[phonogramId]) {
                                     radio.checked = true;
-                                    
-                                    // If status is "Remove", mark the card as removed
-                                    if (radio.value === "Remove") {
-                                        if (!removedCards.includes(index)) {
-                                            removedCards.push(index);
-                                            activeCardCount--;
-                                        }
-                                    }
                                 }
                             });
                             
@@ -287,13 +307,6 @@
                 
                 // Apply saved statuses
                 applySavedStatuses();
-                
-                // Find a valid first card (not removed)
-                if (removedCards.length > 0 && removedCards.length < cards.length) {
-                    while (removedCards.includes(currentIndex)) {
-                        currentIndex = (currentIndex + 1) % cards.length;
-                    }
-                }
                 
                 // Initial display
                 updateCardDisplay();
@@ -391,16 +404,16 @@
                     // Find the selected status
                     for (let radio of statusRadios) {
                         if (radio.checked) {
-                            // Save the status to localStorage
+                            // Save the status
                             if (phonogramId) {
                                 saveStatus(phonogramId, radio.value);
                             }
                             
                             if (radio.value === "Remove") {
-                                // Mark card as removed
+                                // Mark card as removed for this session only
                                 if (!removedCards.includes(index)) {
                                     removedCards.push(index);
-                                    console.log(`Card ${index + 1} has been removed from the session`);
+                                    console.log(`Card ${index + 1} has been removed for this session only`);
                                 }
                                 return true;
                             }
