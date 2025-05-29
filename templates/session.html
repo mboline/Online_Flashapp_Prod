@@ -2,6 +2,7 @@
 <html>
 <head>
     <title>Phonogram University - Phonogram Session</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <style>
         body { 
             font-family: Arial, sans-serif; 
@@ -32,15 +33,32 @@
             padding: 5px;
             border: 1px solid #ddd;
             border-radius: 6px;
+            /* Added display flex to create more structured layout */
+            display: flex;
+            flex-direction: column;
+            min-height: 300px;
+            position: relative;
         }
         .phonogram-image {
             max-width: 75%;
             height: auto;
             margin: 0 auto;
             display: block;
+            /* Added margin-bottom to create space for audio controls */
+            margin-bottom: 70px;
         }
         .audio-controls {
-            margin: 5px auto;
+            /* Fixed positioning for audio controls to prevent cutoff */
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 85%;
+            /* Position audio controls with enough space from bottom */
+            bottom: 80px;
+        }
+        audio {
+            max-width: 100%;
+            height: 35px; /* Increased height for better touch targets */
         }
         .controls { 
             margin-top: 7px; 
@@ -51,6 +69,12 @@
             padding: 4px;
             background-color: #f8f8f8;
             border-radius: 4px;
+            /* Position status at the bottom of card */
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            padding-bottom: 10px;
         }
         .status label { 
             margin-right: 5px; 
@@ -73,10 +97,6 @@
             font-size: 0.9rem;
             margin: 3px 0;
         }
-        audio {
-            max-width: 100%;
-            height: 25px;
-        }
         #restart-session {
             background-color: #f44336;
         }
@@ -86,6 +106,25 @@
         input[value="Remove"] + span {
             color: #f44336;
             font-weight: bold;
+        }
+
+        /* Mobile specific adjustments */
+        @media (max-width: 480px) {
+            .phonogram-card {
+                min-height: 320px; /* Taller cards on mobile */
+            }
+            .phonogram-image {
+                margin-bottom: 85px; /* More space on mobile */
+            }
+            .audio-controls {
+                bottom: 90px; /* Position higher on mobile */
+            }
+            .status {
+                padding-bottom: 15px; /* More padding on mobile */
+            }
+            audio {
+                height: 40px; /* Even larger touch target on mobile */
+            }
         }
     </style>
 </head>
