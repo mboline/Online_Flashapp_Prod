@@ -9,17 +9,31 @@ import json
 # Load environment variables
 load_dotenv()
 
-# Initialize Flask app
-app = Flask(__name__)
-app.secret_key = 'your_secret_key'  # Required for session functionality
+# Get the absolute path to the directory containing this file
+basedir = os.path.abspath(os.path.dirname(__file__))
+
+# Initialize Flask app with explicit template folder path
+app = Flask(__name__, 
+            template_folder=os.path.join(basedir, 'templates'),
+            static_folder=os.path.join(basedir, 'static'))
+
+# Set a secret key for session
+app.secret_key = os.environ.get('SECRET_KEY', 'your_secret_key')
 
 # Connect to MongoDB using environment variables
-mongo_uri = os.getenv("MONGO_URI")  # MongoDB connection string stored in .env
+mongo_uri = os.environ.get("MONGO_URI")  # MongoDB connection string
 if not mongo_uri:
     raise ValueError("MONGO_URI is not set in the environment variables.")
 client = MongoClient(mongo_uri)
 db = client['WordInfo']
 collection = db['Phonograms']
+
+# Add debugging for template path
+print(f"Current directory: {os.getcwd()}")
+print(f"Template folder: {app.template_folder}")
+print(f"Does template folder exist: {os.path.exists(app.template_folder)}")
+print(f"Template path: {os.path.join(app.template_folder, 'index.html')}")
+print(f"Does template exist: {os.path.exists(os.path.join(app.template_folder, 'index.html'))}")
 
 # Predefined lesson structure
 lessons_structure = [
@@ -98,7 +112,6 @@ def start_session():
             return jsonify({"error": "No phonograms selected."}), 400
 
         # Fetch phonograms from MongoDB in the order they appear in selected_phonograms
-        # This preserves the order they were selected in
         phonograms = []
         for index, phonogram_id in enumerate(selected_phonograms):
             result = collection.find_one({"phonogram": phonogram_id})
@@ -143,4 +156,6 @@ def session_view():
     return render_template('session.html', phonograms=phonograms)
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    # For local development
+    port = int(os.environ.get('PORT', 5000))
+    app.run(host='0.0.0.0', port=port, debug=True)
