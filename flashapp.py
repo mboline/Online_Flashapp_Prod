@@ -1,4 +1,3 @@
-import time
 from flask import Flask, render_template, request, jsonify, redirect, url_for, session
 from pymongo import MongoClient
 from bson import ObjectId
@@ -6,6 +5,8 @@ from dotenv import load_dotenv
 import os
 import random
 import json
+import time
+import traceback
 
 # Load environment variables
 load_dotenv()
@@ -21,54 +22,65 @@ app = Flask(__name__,
 # Set a secret key for session
 app.secret_key = os.environ.get('SECRET_KEY', 'your_secret_key')
 
-# Connect to MongoDB using environment variables
-""" mongo_uri = os.environ.get("MONGO_URI")  # MongoDB connection string
-if not mongo_uri:
-    raise ValueError("MONGO_URI is not set in the environment variables.")
-client = MongoClient(mongo_uri)
-db = client['WordInfo']
-collection = db['Phonograms'] """
-
-mongo_uri = os.environ.get("MONGO_URI")
-if not mongo_uri:
-    raise ValueError("MONGO_URI is not set in the environment variables.")
-
-# More robust connection handling
-max_retries = 3
-retry_delay = 2  # seconds
-for attempt in range(max_retries):
-    try:
-        print(f"MongoDB connection attempt {attempt+1}/{max_retries}")
-        client = MongoClient(
-            mongo_uri,
-            serverSelectionTimeoutMS=5000,
-            connectTimeoutMS=10000,
-            socketTimeoutMS=20000
-        )
-        # Force a connection to verify it's working
-        client.admin.command('ping')
-        print("MongoDB connection successful!")
-        db = client['WordInfo']
-        collection = db['Phonograms']
-        break  # Connection successful, exit the retry loop
-    except Exception as e:
-        print(f"MongoDB connection error on attempt {attempt+1}: {e}")
-        if attempt < max_retries - 1:
-            print(f"Retrying in {retry_delay} seconds...")
-            time.sleep(retry_delay)
-            retry_delay *= 2  # Exponential backoff
-        else:
-            print("All connection attempts failed.")
-            # Consider using a fallback or mock data for development/testing
-            # Or re-raise the exception if you want to fail the application startup
-            raise
-
-# Add debugging for template path
+# Print debug info about directories
 print(f"Current directory: {os.getcwd()}")
-print(f"Template folder: {app.template_folder}")
-print(f"Does template folder exist: {os.path.exists(app.template_folder)}")
-print(f"Template path: {os.path.join(app.template_folder, 'index.html')}")
-print(f"Does template exist: {os.path.exists(os.path.join(app.template_folder, 'index.html'))}")
+print(f"Base directory: {basedir}")
+print(f"Template folder: {os.path.join(basedir, 'templates')}")
+print(f"Static folder: {os.path.join(basedir, 'static')}")
+
+# Check if template directories exist
+print(f"Template directory exists: {os.path.exists(os.path.join(basedir, 'templates'))}")
+print(f"Static directory exists: {os.path.exists(os.path.join(basedir, 'static'))}")
+
+# List files in template directory if it exists
+template_dir = os.path.join(basedir, 'templates')
+if os.path.exists(template_dir):
+    print(f"Files in templates directory: {os.listdir(template_dir)}")
+
+# Connect to MongoDB with robust retry logic
+def connect_to_mongodb():
+    global db, collection
+    mongo_uri = os.environ.get("MONGO_URI")
+    
+    if not mongo_uri:
+        print("ERROR: MONGO_URI environment variable is not set")
+        return False
+    
+    max_retries = 5
+    retry_delay = 2  # seconds
+    
+    for attempt in range(max_retries):
+        try:
+            print(f"MongoDB connection attempt {attempt+1}/{max_retries}")
+            client = MongoClient(
+                mongo_uri,
+                serverSelectionTimeoutMS=10000,
+                connectTimeoutMS=30000,
+                socketTimeoutMS=45000,
+                maxPoolSize=1
+            )
+            # Force a connection to verify it's working
+            client.admin.command('ping')
+            print("MongoDB connection successful!")
+            db = client['WordInfo']
+            collection = db['Phonograms']
+            return True
+        except Exception as e:
+            print(f"MongoDB connection error on attempt {attempt+1}: {e}")
+            if attempt < max_retries - 1:
+                print(f"Retrying in {retry_delay} seconds...")
+                time.sleep(retry_delay)
+                retry_delay *= 2  # Exponential backoff
+            else:
+                print("All connection attempts failed.")
+                return False
+
+# Try to connect to MongoDB at startup
+mongodb_connected = connect_to_mongodb()
+
+# Initialize global variables
+db = None
+collection = None
 
 # Predefined lesson structure
 lessons_structure = [
@@ -97,36 +109,55 @@ def home():
     """
     Fetch phonograms grouped by lessons and render the home page.
     """
-    lessons = []
+    try:
+        # Check MongoDB connection first
+        if not mongodb_connected:
+            if not connect_to_mongodb():  # Try to reconnect
+                return "Database connection is currently unavailable. Please try again later.", 503
+        
+        lessons = []
+        # Iterate through the predefined lesson structure
+        for lesson_data in lessons_structure:
+            lesson_number = lesson_data['lesson']
+            phonograms = lesson_data['phonograms']
 
-    # Iterate through the predefined lesson structure
-    for lesson_data in lessons_structure:
-        lesson_number = lesson_data['lesson']
-        phonograms = lesson_data['phonograms']
-
-        # Fetch phonograms from MongoDB that match the current lesson's phonograms
-        phonogram_data = list(collection.find({"phonogram": {"$in": phonograms}}))
-
-        # Create a dictionary to map phonograms to their data for easy sorting
-        phonogram_map = {p['phonogram']: p for p in phonogram_data}
-
-        # Sort the phonograms based on the order in the lessons_structure array
-        lesson_phonograms = []
-        for phonogram in phonograms:
-            if phonogram in phonogram_map:
-                lesson_phonograms.append({
-                    "phonogram": phonogram,
-                    "audio_url": phonogram_map[phonogram].get("phonogram_url", ""),
-                    "image_url": phonogram_map[phonogram].get("phonogram_png", "")
+            try:
+                # Fetch phonograms from MongoDB that match the current lesson's phonograms
+                phonogram_data = list(collection.find({"phonogram": {"$in": phonograms}}))
+                
+                # Create a dictionary to map phonograms to their data for easy sorting
+                phonogram_map = {p['phonogram']: p for p in phonogram_data}
+                
+                # Sort the phonograms based on the order in the lessons_structure array
+                lesson_phonograms = []
+                for phonogram in phonograms:
+                    if phonogram in phonogram_map:
+                        lesson_phonograms.append({
+                            "phonogram": phonogram,
+                            "audio_url": phonogram_map[phonogram].get("phonogram_url", ""),
+                            "image_url": phonogram_map[phonogram].get("phonogram_png", "")
+                        })
+                
+                # Add the lesson and its phonograms to the lessons list
+                lessons.append({
+                    "lesson": lesson_number,
+                    "phonograms": lesson_phonograms
                 })
-
-        # Add the lesson and its phonograms to the lessons list
-        lessons.append({
-            "lesson": lesson_number,
-            "phonograms": lesson_phonograms
-        })
-
-    return render_template('index.html', lessons=lessons)
+            except Exception as e:
+                print(f"Error processing lesson {lesson_number}: {e}")
+        
+        # Check if templates exist
+        template_path = os.path.join(app.template_folder, 'index.html')
+        if not os.path.exists(template_path):
+            print(f"ERROR: Template not found: {template_path}")
+            return "Error: Template 'index.html' not found. Please make sure the templates folder exists and contains the required files.", 500
+            
+        return render_template('index.html', lessons=lessons)
+    
+    except Exception as e:
+        print(f"Error in home route: {e}")
+        traceback.print_exc()
+        return "An unexpected error occurred. Please try again later.", 500
 
 @app.route('/start-session', methods=['POST'])
 def start_session():
@@ -134,6 +165,11 @@ def start_session():
     Start a session with selected phonograms and optional randomization.
     """
     try:
+        # Check MongoDB connection
+        if not mongodb_connected:
+            if not connect_to_mongodb():  # Try to reconnect
+                return jsonify({"error": "Database connection is currently unavailable."}), 503
+                
         # Get selected phonograms and randomization preference
         selected_phonograms = request.json.get('selected_phonograms', [])
         randomize = request.json.get('randomize', False)
@@ -176,6 +212,7 @@ def start_session():
     
     except Exception as e:
         print(f"Error in /start-session: {e}")
+        traceback.print_exc()
         return jsonify({"error": str(e)}), 500
 
 @app.route('/session')
@@ -183,12 +220,33 @@ def session_view():
     """
     Render the session page with the selected phonograms.
     """
-    phonograms = session.get('phonograms', [])
-    
-    if not phonograms:
-        return "No phonograms selected for this session. <a href='/'>Return to home</a>", 400
+    try:
+        phonograms = session.get('phonograms', [])
+        
+        if not phonograms:
+            return "No phonograms selected for this session. <a href='/'>Return to home</a>", 400
 
-    return render_template('session.html', phonograms=phonograms)
+        # Check if session.html template exists
+        template_path = os.path.join(app.template_folder, 'session.html')
+        if not os.path.exists(template_path):
+            print(f"ERROR: Template not found: {template_path}")
+            return "Error: Template 'session.html' not found.", 500
+            
+        return render_template('session.html', phonograms=phonograms)
+        
+    except Exception as e:
+        print(f"Error in session view: {e}")
+        traceback.print_exc()
+        return "An error occurred while loading the session. Please go back and try again.", 500
+
+# Error handlers
+@app.errorhandler(404)
+def page_not_found(e):
+    return "Page not found. The requested URL was not found on the server.", 404
+
+@app.errorhandler(500)
+def internal_server_error(e):
+    return "The server encountered an internal error and was unable to complete your request.", 500
 
 if __name__ == '__main__':
     # For local development
