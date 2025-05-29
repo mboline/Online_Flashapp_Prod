@@ -2,27 +2,30 @@
 <html>
 <head>
     <title>Phonogram University - Phonogram Flashcard App</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <style>
         body { 
             font-family: Arial, sans-serif; 
-            margin: 20px;
+            margin: 10px;
+            padding-bottom: 20px;
+            background-color: #f9f9f9;
         }
         .banner {
             width: 100%;
             max-width: 1024px;
-            margin-bottom: 20px;
+            margin-bottom: 15px;
         }
         .header-text {
-            margin-bottom: 30px;
+            margin-bottom: 20px;
         }
         .header-text h1 {
             color: #444;
-            font-size: 32px;
+            font-size: 24px;
             margin-bottom: 5px;
         }
         .header-text h2 {
             color: #666;
-            font-size: 20px;
+            font-size: 16px;
             font-weight: normal;
             margin-top: 0;
         }
@@ -36,35 +39,58 @@
         hr {
             border: none;
             border-top: 1px solid #ddd;
-            margin: 20px 0;
+            margin: 15px 0;
         }
         .top-controls {
             background-color: #f8f8f8;
             padding: 15px;
             border-radius: 5px;
-            margin-bottom: 20px;
             border: 1px solid #ddd;
+            margin-bottom: 15px;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            transition: box-shadow 0.3s ease;
+        }
+        /* Add shadow when scrolling */
+        .top-controls.scrolled {
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
         }
         .control-row {
             display: flex;
             align-items: center;
-            margin-bottom: 10px;
+            flex-wrap: wrap;
+            gap: 20px; /* Add gap to create specific spacing */
+            max-width: 500px; /* Limit the width to keep elements closer together */
+/*             display: flex;
+            align-items: center;
+            flex-wrap: wrap; */
         }
         .checkbox-column {
             display: flex;
             flex-direction: column;
+            flex: 1;
+            min-width: 180px;
         }
         .checkbox-row {
             margin-bottom: 8px;
+            display: flex;
+            align-items: center;
         }
         #start-session {
-            margin-left: 30px;
-            padding: 8px 15px;
+            padding: 10px 15px;
             background-color: #4A148C;
             color: white;
             border: none;
-            border-radius: 4px;
+            border-radius: 5px;
             cursor: pointer;
+            font-size: 16px;
+            margin: 5px;
+            min-width: 150px;
+            height: 40px;
+            margin-left: 0; /* Remove the left margin */
+            margin-top: 5px; /* Small top margin for spacing */
         }
         #start-session:hover {
             background-color: #6A1B9A;
@@ -74,45 +100,91 @@
             border: 1px solid #ddd;
             padding: 10px;
             border-radius: 5px;
+            background-color: #ffffff;
         }
         .lesson-header {
-            margin-bottom: 8px;
+            margin-bottom: 10px;
             font-weight: bold;
+            font-size: 16px;
         }
         .phonogram-container {
             display: flex;
             flex-wrap: wrap;
             align-items: center;
         }
-        /* Key fix - ensure all checkbox labels have the same styling */
         .phonogram, .select-all-label {
             display: inline-flex;
             align-items: center;
             margin-right: 15px;
             margin-bottom: 5px;
         }
-        /* Add spacing between checkbox and text */
         input[type="checkbox"] {
             vertical-align: middle;
             margin: 0;
-            margin-right: 5px; /* Add 5px space between checkbox and text */
+            margin-right: 6px;
             position: relative;
-            top: -1px; /* Fine-tune vertical alignment */
+            width: 18px;
+            height: 18px;
         }
         label {
             display: inline-flex;
             align-items: center;
+            font-size: 16px;
+            cursor: pointer;
+            padding: 3px 0;
         }
         
-        /* Media query for smaller screens */
+        /* Adjustments for very small screens */
+        @media (max-width: 400px) {
+            body {
+                margin: 5px;
+            }
+            .header-text h1 {
+                font-size: 20px;
+            }
+            .header-text h2 {
+                font-size: 14px;
+            }
+            .top-controls {
+                padding: 10px;
+            }
+            .lesson {
+                padding: 8px;
+            }
+        }
+        
+        /* Medium-sized screens */
         @media (max-width: 600px) {
             .control-row {
                 flex-direction: column;
                 align-items: flex-start;
             }
             #start-session {
-                margin-left: 0;
-                margin-top: 10px;
+                margin: 10px 0 0 0;
+                width: 100%;
+            }
+            .checkbox-column {
+                width: 100%;
+            }
+            .phonogram, .select-all-label {
+                margin-right: 10px;
+            }
+        }
+        
+        /* Enhance touch targets for mobile */
+        @media (any-pointer: coarse) {
+            input[type="checkbox"] {
+                width: 22px;
+                height: 22px;
+            }
+            label {
+                padding: 8px 0;
+            }
+            .phonogram, .select-all-label {
+                padding: 2px;
+            }
+            .checkbox-row {
+                margin-bottom: 12px;
             }
         }
     </style>
@@ -131,7 +203,7 @@
     
     <hr>
 
-    <div class="top-controls">
+    <div class="top-controls" id="floating-controls">
         <div class="control-row">
             <div class="checkbox-column">
                 <div class="checkbox-row">
@@ -173,5 +245,21 @@
 
     <!-- Link to the external JavaScript file -->
     <script src="{{ url_for('static', filename='script.js') }}"></script>
+    
+    <!-- Add script for floating controls -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const floatingControls = document.getElementById('floating-controls');
+            
+            // Add scroll event listener
+            window.addEventListener('scroll', function() {
+                if (window.scrollY > 50) {
+                    floatingControls.classList.add('scrolled');
+                } else {
+                    floatingControls.classList.remove('scrolled');
+                }
+            });
+        });
+    </script>
 </body>
 </html>
